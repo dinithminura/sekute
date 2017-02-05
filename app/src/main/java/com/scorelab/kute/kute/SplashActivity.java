@@ -47,7 +47,8 @@ public class SplashActivity extends AppCompatActivity {
             }
             else{ //User registered in the system.
 
-
+                Intent regIntent =new Intent(SplashActivity.this, RegisterActivity.class);
+                startActivity(regIntent);
             }
 
 
