@@ -1,6 +1,7 @@
 package com.scorelab.kute.kute;
 
 
+import com.facebook.FacebookSdk;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -16,7 +17,7 @@ public class KuteApplication extends android.app.Application{
 
         //Previous versions of Firebase
 
-
+        FacebookSdk.sdkInitialize(getApplicationContext());
         //Newer version of Firebase
         if(!FirebaseApp.getApps(this).isEmpty()) {
             FirebaseDatabase.getInstance().setPersistenceEnabled(true);
