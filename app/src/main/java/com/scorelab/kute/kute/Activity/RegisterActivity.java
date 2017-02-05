@@ -2,14 +2,21 @@ package com.scorelab.kute.kute.Activity;
 
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.toolbox.ImageRequest;
+import com.android.volley.toolbox.Volley;
 import com.facebook.AccessToken;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
@@ -33,11 +40,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.scorelab.kute.kute.R;
+import com.scorelab.kute.kute.Util.ImageHandler;
 
 public class RegisterActivity extends AppCompatActivity implements
         GoogleApiClient.OnConnectionFailedListener,
         View.OnClickListener{
 
+    RequestQueue rq;
     private static final String TAG = "SignInActivity";
     private static final int RC_SIGN_IN = 9001;
 
@@ -121,6 +130,7 @@ public class RegisterActivity extends AppCompatActivity implements
                         } else {
                             Toast.makeText(RegisterActivity.this, "Authentication Done."+task.getResult().getUser().getDisplayName()+" - "+task.getResult().getUser().getDisplayName()+" - "+task.getResult().getUser().getEmail()+" - "+task.getResult().getUser().getPhotoUrl().getPath()+" - ",
                                     Toast.LENGTH_SHORT).show();
+                            getImage(task.getResult().getUser().getPhotoUrl().toString());
                         }
                     }
                 });
@@ -164,7 +174,9 @@ public class RegisterActivity extends AppCompatActivity implements
                     if (user != null) {
                         // User is signed in
                         Log.d(TAG, "onAuthStateChanged:signed_in:" + user.getUid());
-                        Toast.makeText(getApplicationContext(), "Facebook  User " + user.getDisplayName(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Facebook  User " + user.getPhotoUrl(), Toast.LENGTH_LONG).show();
+                        getImage(user.getPhotoUrl().toString());
+
                     } else {
                         // User is signed out
                         Log.d(TAG, "onAuthStateChanged:signed_out");
@@ -234,6 +246,7 @@ public class RegisterActivity extends AppCompatActivity implements
             Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
         }
 
+        rq= Volley.newRequestQueue(this);
     }
 
     @Override
@@ -295,8 +308,20 @@ public class RegisterActivity extends AppCompatActivity implements
     public void signOut() {
         mAuth.signOut();
         LoginManager.getInstance().logOut();
-        Toast.makeText(getApplicationContext(),"Facebook  Signout",Toast.LENGTH_LONG).show();
+        Toast.makeText(getApplicationContext(),"You have been Signout from the Kute",Toast.LENGTH_LONG).show();
         //updateUI(null);
     }
+public void getImage(String url){
+    ImageRequest ir = new ImageRequest(url, new Response.Listener<Bitmap>() {
+        @Override
+        public void onResponse(Bitmap response) {
+            ImageHandler.saveImageToprefrence(getSharedPreferences(ImageHandler.MainKey,MODE_PRIVATE),response);
+            ImageView iv=(ImageView)findViewById(R.id.imageView);
+            iv.setImageBitmap(response);
+        }
+    }, 0, 0, null, null);
+    rq.add(ir);
+
+}
 
 }
