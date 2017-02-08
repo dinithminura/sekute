@@ -1,5 +1,6 @@
 package com.scorelab.kute.kute;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.scorelab.kute.kute.Activity.TaskSelection;
 import com.scorelab.kute.kute.Util.ImageHandler;
@@ -23,6 +25,7 @@ public class LandActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     ImageView userProfileImage;
+    static int SelectTaskActivityCode=100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +40,7 @@ public class LandActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent taskselect=new Intent(LandActivity.this, TaskSelection.class);
-                startActivity(taskselect);
+                startActivityForResult(taskselect,SelectTaskActivityCode);
             }
         });
 
@@ -127,5 +130,18 @@ public class LandActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode==SelectTaskActivityCode){
+            if(resultCode== Activity.RESULT_OK){
+                Toast.makeText(getApplicationContext(),"+ "+data.getStringExtra("type")+" "+data.getStringExtra("vehname")+" "+data.getStringExtra("Activity"),Toast.LENGTH_LONG).show();
+            }
+            else if(resultCode==Activity.RESULT_CANCELED){
+
+            }
+        }
     }
 }

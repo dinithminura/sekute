@@ -37,6 +37,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".Activity.TaskSelection"></activity>
+        <activity android:name=".Activity.VehicleSelection" ></activity>
     </application>
 
 </manifest>
