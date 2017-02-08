@@ -1,6 +1,9 @@
 package com.scorelab.kute.kute;
 
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -18,6 +21,8 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.scorelab.kute.kute.Activity.FragmentUI.PublishFragment;
+import com.scorelab.kute.kute.Activity.FragmentUI.TrackFragment;
 import com.scorelab.kute.kute.Activity.TaskSelection;
 import com.scorelab.kute.kute.Util.ImageHandler;
 
@@ -137,11 +142,33 @@ public class LandActivity extends AppCompatActivity
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==SelectTaskActivityCode){
             if(resultCode== Activity.RESULT_OK){
-                Toast.makeText(getApplicationContext(),"+ "+data.getStringExtra("type")+" "+data.getStringExtra("vehname")+" "+data.getStringExtra("Activity"),Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(),"+ "+data.getStringExtra("type")+" "+data.getStringExtra("vehname")+" "+data.getStringExtra("Activity"),Toast.LENGTH_LONG).show();
+                handleTask(data.getStringExtra("Activity"),data.getStringExtra("type"),data.getStringExtra("vehname"));
             }
             else if(resultCode==Activity.RESULT_CANCELED){
 
             }
         }
+    }
+
+    public void handleTask(String activity,String type,String vehname){
+        Fragment fr;
+
+        if(activity.equals("PublishMe")){
+            fr=new PublishFragment();
+        }
+        else if(activity.equals("TrackMe")){
+                fr=new TrackFragment();
+        }
+        else{
+            fr=new PublishFragment();
+        }
+
+
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+        fragmentTransaction.replace(R.id.fragment_place, fr);
+        fragmentTransaction.commit();
+
     }
 }
