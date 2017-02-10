@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,7 +31,7 @@ public class VehicleSelection extends AppCompatActivity {
     AutoCompleteTextView ACTV;
     String vehtype;
     Button vehselect;
-    HashMap<String,String> vehmap;
+    HashMap<String,String> vehmapbus,vehmaptrain;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,17 +39,20 @@ public class VehicleSelection extends AppCompatActivity {
         DatabaseReference database = FirebaseDatabase.getInstance().getReference();
         ACTV= (AutoCompleteTextView)findViewById(R.id.vehiclename);
         ACTV.setVisibility(View.INVISIBLE);
-        vehmap=new HashMap<String, String>();
+        vehmapbus=new HashMap<String, String>();
+        vehmaptrain=new HashMap<String, String>();
         final ArrayAdapter<String> autoCompleteTrains = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1);
         database.child("Trains").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 autoCompleteTrains.clear();
                 ACTV.clearListSelection();
-                vehmap.clear();
+                vehmaptrain.clear();
                 for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()){
+
                     String suggestion = suggestionSnapshot.child("TrainName").getValue(String.class);
-                    vehmap.put(suggestion,suggestionSnapshot.child("TrainName").getKey());
+                    vehmaptrain.put(suggestion,suggestionSnapshot.getKey());
+                    //Toast.makeText(getApplicationContext(),vehmap.get(suggestion)+"--- || -- "+suggestionSnapshot.getKey(),Toast.LENGTH_LONG).show();
                     autoCompleteTrains.add(suggestion);
 
                 }
@@ -67,10 +71,10 @@ public class VehicleSelection extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 autoCompleteBus.clear();
                 ACTV.clearListSelection();
-                vehmap.clear();
+                vehmapbus.clear();
                 for (DataSnapshot suggestionSnapshot : dataSnapshot.getChildren()){
                     String suggestion = suggestionSnapshot.child("BusrootNo").getValue(String.class);
-                    vehmap.put(suggestion,suggestionSnapshot.child("BusrootNo").getKey());
+                    vehmapbus.put(suggestion,suggestionSnapshot.getKey());
                     autoCompleteBus.add(suggestion);
                 }
             }
@@ -126,7 +130,13 @@ public class VehicleSelection extends AppCompatActivity {
                 Intent returnIntent = new Intent();
                 returnIntent.putExtra("type",vehtype);
                 returnIntent.putExtra("vehname",ACTV.getText().toString());
-                returnIntent.putExtra("vehkey",vehmap.get(ACTV.getText().toString()));
+                if(vehtype.equals("train")){
+                    returnIntent.putExtra("vehkey",vehmaptrain.get(ACTV.getText().toString()));
+                }
+                else if(vehtype.equals("bus")){
+                    returnIntent.putExtra("vehkey",vehmapbus.get(ACTV.getText().toString()));
+                }
+
                 setResult(Activity.RESULT_OK,returnIntent);
                 finish();
             }

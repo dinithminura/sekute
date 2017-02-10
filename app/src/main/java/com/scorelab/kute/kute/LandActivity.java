@@ -178,25 +178,26 @@ public class LandActivity extends AppCompatActivity
         Fragment fr;
         Intent intent = new Intent();
         keyvehicle=vehkey;
+        Toast.makeText(getApplicationContext(),"-- "+vehkey,Toast.LENGTH_LONG).show();
         if (activity.equals("PublishMe")) {
             //fr = new PublishFragment();
             intent.putExtra(MessageKey.intenetKeyTrackStatus,"publish");
-            if(vehname.equals("train")){
+            if(type.equals("train")){
                 applicationTaskStatus=MessageKey.PublishTrain;
-                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"train");
-            }else if(vehname.equals("bus")){
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"Trains");
+            }else if(type.equals("bus")){
                 applicationTaskStatus=MessageKey.PublishBus;
-                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"bus");
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"Bus");
             }
         } else if (activity.equals("TrackMe")) {
             //fr = new TrackFragment();
             intent.putExtra(MessageKey.intenetKeyTrackStatus,"track");
-            if(vehname.equals("train")){
+            if(type.equals("train")){
                 applicationTaskStatus=MessageKey.TrackTrain;
-                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"train");
-            }else if(vehname.equals("bus")){
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"Trains");
+            }else if(type.equals("bus")){
                 applicationTaskStatus=MessageKey.TrackBus;
-                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"bus");
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"Bus");
             }
         } else {
             fr = new PublishFragment();
@@ -204,6 +205,7 @@ public class LandActivity extends AppCompatActivity
         intent.putExtra(MessageKey.vehiclekeyindex,keyvehicle);
         intent.setAction(MessageKey.activityserviceintentName);
         sendBroadcast(intent);
+        Toast.makeText(getApplicationContext(),"Done Getting task",Toast.LENGTH_LONG).show();
 
 //        fr=new PublishFragment();
 //        FragmentManager fm = getFragmentManager();

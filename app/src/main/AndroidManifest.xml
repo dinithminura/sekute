@@ -21,7 +21,11 @@
             android:value="@string/googlemapApi"/>
 
         <activity android:name=".SplashActivity"></activity>
-        <activity android:name=".Activity.RegisterActivity" />
+
+        <activity android:name=".Activity.RegisterActivity" >
+
+        </activity>
+
         <activity
             android:name="com.facebook.FacebookActivity"
             android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"

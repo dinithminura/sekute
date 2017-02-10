@@ -16,9 +16,16 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.os.ResultReceiver;
+import android.util.Log;
 import android.widget.Toast;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.scorelab.kute.kute.Util.MessageKey;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by nrv on 2/9/17.
@@ -37,6 +44,10 @@ public class BacKService extends Service implements LocationListener {
     private String provider;
     LocationManager m_locationManager;
     String vehkeyindex=null;
+    String PubTrackStatus;
+    String Vehicle;
+    //FirebaseDatabase database;// = FirebaseDatabase.getInstance();
+    DatabaseReference ref;
 
     // Create reciever object
     private BroadcastReceiver controlrecver = new ControlMessageRecever();
@@ -46,6 +57,7 @@ public class BacKService extends Service implements LocationListener {
 
     // Register new broadcast receiver
 
+    private String TAG=BacKService.class.getName();
 
 
     public BacKService() {
@@ -55,9 +67,17 @@ public class BacKService extends Service implements LocationListener {
     @Override
     public void onCreate() {
         super.onCreate();
+        FirebaseApp.initializeApp(this);
         this.m_locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         this.registerReceiver(controlrecver, filter);
-
+        try {
+            ref = FirebaseDatabase.getInstance().getReference();
+        }
+        catch (Exception e){
+            Log.e(TAG,e.getMessage());
+            Toast.makeText(getApplicationContext(),e.toString(),Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+        }
     }
 
 
@@ -96,6 +116,17 @@ public class BacKService extends Service implements LocationListener {
         Bundle bundle = new Bundle();
         bundle.putParcelable("location",location);
         resultReceiver.send(MessageKey.MyLocationUpdate, bundle);
+
+        if(PubTrackStatus!=null && PubTrackStatus.equals("publish") && vehkeyindex!=null && Vehicle!=null && ref !=null) {
+           // Toast.makeText(getApplicationContext(),"e.toString()",Toast.LENGTH_LONG).show();
+            Map<String, Object> hopperUpdates = new HashMap<String, Object>();
+            hopperUpdates.put("lat", location.getLatitude());
+            hopperUpdates.put("lon", location.getLongitude());
+            hopperUpdates.put("speed", location.getSpeed());
+            ref.updateChildren(hopperUpdates);
+        }
+        //Toast.makeText(getApplicationContext(),"e.toString() "+(vehkeyindex!=null) +" "+ (Vehicle!=null) + " "+ (ref !=null) ,Toast.LENGTH_LONG).show();
+
     }
 
     @Override
@@ -120,10 +151,19 @@ public class BacKService extends Service implements LocationListener {
     class ControlMessageRecever extends BroadcastReceiver{
 
         @Override
-        public void onReceive(Context context, Intent intent) {
-            String vehkey=intent.getStringExtra(MessageKey.vehiclekeyindex); //Firebase index of the vehicle
-            vehkeyindex=vehkey;
+        public void onReceive(Context context, Intent intent) { //ToDo add thread and synchronise
+           // try {
+                String vehkey = intent.getStringExtra(MessageKey.vehiclekeyindex); //Firebase index of the vehicle
+                vehkeyindex = vehkey;
+        // try{
+                PubTrackStatus = intent.getStringExtra(MessageKey.intenetKeyTrackStatus); //pUBLISH OR TRACK
+                Vehicle = intent.getStringExtra(MessageKey.intenetKeyTrackVehicle); //pUBLISH OR TRACK
+       // try{
+                if (PubTrackStatus.equals("publish")) {
+                        ref = FirebaseDatabase.getInstance().getReference(Vehicle + "/" + vehkeyindex + "/");
+                } else if (PubTrackStatus.equals("track")) {
 
+                }
         }
     }
 }
