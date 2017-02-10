@@ -20,9 +20,15 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.scorelab.kute.kute.Util.MessageKey;
+import com.scorelab.kute.kute.Util.TrainTrackFirebase;
+
+import org.w3c.dom.Comment;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -161,9 +167,84 @@ public class BacKService extends Service implements LocationListener {
        // try{
                 if (PubTrackStatus.equals("publish")) {
                         ref = FirebaseDatabase.getInstance().getReference(Vehicle + "/" + vehkeyindex + "/");
+                    ref.removeEventListener(childEventListener);
                 } else if (PubTrackStatus.equals("track")) {
-
+                    ref = FirebaseDatabase.getInstance().getReference(Vehicle + "/" );
+                    ref.addChildEventListener(childEventListener);
                 }
         }
     }
+
+
+    ChildEventListener childEventListener = new ChildEventListener() {
+        @Override
+        public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
+            Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
+
+            // A new comment has been added, add it to the displayed list
+            //Comment comment = dataSnapshot.getValue(Comment.class);
+
+            // ...
+        }
+
+        @Override
+        public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
+            Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
+
+                double speed;
+                double lat = (Double) dataSnapshot.child("lat").getValue();
+                double lon = (Double) dataSnapshot.child("lon").getValue();
+                try {
+                    speed = (Double) dataSnapshot.child("speed").getValue();
+                }
+                catch (Exception e){
+                    speed = (Long) dataSnapshot.child("speed").getValue();
+                }
+                String TrainName = (String) dataSnapshot.child("TrainName").getValue();
+            Bundle bundle = new Bundle();
+            bundle.putDouble("lat",lat);
+            bundle.putDouble("lon",lon);
+            bundle.putDouble("speed",speed);
+            bundle.putString("TrainName",TrainName);
+            resultReceiver.send(MessageKey.FireBaseTrackUpdate, bundle);
+
+
+            // A comment has changed, use the key to determine if we are displaying this
+            // comment and if so displayed the changed comment.
+
+
+            // ...
+        }
+
+        @Override
+        public void onChildRemoved(DataSnapshot dataSnapshot) {
+            Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
+
+            // A comment has changed, use the key to determine if we are displaying this
+            // comment and if so remove it.
+            //String commentKey = dataSnapshot.getKey();
+
+            // ...
+        }
+
+        @Override
+        public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
+            Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
+
+            // A comment has changed position, use the key to determine if we are
+            // displaying this comment and if so move it.
+            //Comment movedComment = dataSnapshot.getValue(Comment.class);
+            //String commentKey = dataSnapshot.getKey();
+
+            // ...
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Log.w(TAG, "postComments:onCancelled", databaseError.toException());
+
+        }
+    };
+
+
 }

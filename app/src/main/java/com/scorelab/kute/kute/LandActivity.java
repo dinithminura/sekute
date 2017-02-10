@@ -31,6 +31,9 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.scorelab.kute.kute.Activity.FragmentUI.PublishFragment;
 import com.scorelab.kute.kute.Activity.FragmentUI.TrackFragment;
 import com.scorelab.kute.kute.Activity.TaskSelection;
@@ -47,6 +50,7 @@ public class LandActivity extends AppCompatActivity
     ServiceDataReceiver serviceDataReceiver;
     int applicationTaskStatus=MessageKey.InitShow;
     String keyvehicle=null;
+    Marker trackerMarker=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +63,7 @@ public class LandActivity extends AppCompatActivity
         Intent intent = new Intent(this, BacKService.class);
         intent.putExtra("receiver", serviceDataReceiver);
         startService(intent);
+
 
 
 
@@ -265,11 +270,22 @@ public class LandActivity extends AppCompatActivity
         @Override
         public void run() {
             if(rescode== MessageKey.MyLocationUpdate) {
-                Toast.makeText(getApplicationContext(), "+++" + "Got data " + ((Location) datatoupdate.getParcelable("location")).getLongitude(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), "+++" + "Got data " + ((Location) datatoupdate.getParcelable("location")).getLongitude(), Toast.LENGTH_LONG).show();
             }
             else if(rescode==MessageKey.FireBaseTrackUpdate){
+                //Toast.makeText(getApplicationContext(),"DataChnaged "+datatoupdate.getDouble("lat")+" "+datatoupdate.getDouble("lon"),Toast.LENGTH_LONG).show();
 
                 if(applicationTaskStatus==MessageKey.TrackTrain){
+
+                    LatLng newLoc=new LatLng(datatoupdate.getDouble("lat"),datatoupdate.getDouble("lon"));
+                    if(trackerMarker==null) {
+                        trackerMarker=mGoogleMap.addMarker(new MarkerOptions().position(newLoc).title(datatoupdate.getString("TrainName")));
+                    }
+                    else{
+                        trackerMarker.setPosition(newLoc);
+                        trackerMarker.setTitle(datatoupdate.getString("TrainName"));
+                    }
+
                     //Location trainloc=(Location) datatoupdate.getParcelable("locationlist");
                 }
                 else if(applicationTaskStatus==MessageKey.TrackBus){
