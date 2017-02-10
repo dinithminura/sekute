@@ -2,13 +2,19 @@ package com.scorelab.kute.kute;
 
 import android.app.Activity;
 import android.app.Fragment;
+
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.os.ResultReceiver;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -21,31 +27,47 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.scorelab.kute.kute.Activity.FragmentUI.PublishFragment;
 import com.scorelab.kute.kute.Activity.FragmentUI.TrackFragment;
 import com.scorelab.kute.kute.Activity.TaskSelection;
+import com.scorelab.kute.kute.Services.BacKService;
 import com.scorelab.kute.kute.Util.ImageHandler;
+import com.scorelab.kute.kute.Util.MessageKey;
 
 public class LandActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
+    GoogleMap mGoogleMap;
     ImageView userProfileImage;
-    static int SelectTaskActivityCode=100;
+    static int SelectTaskActivityCode = 100;
+    public static android.support.v4.app.FragmentManager fmn;
+    ServiceDataReceiver serviceDataReceiver;
+    int applicationTaskStatus=MessageKey.InitShow;
+    String keyvehicle=null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_land);
+        fmn = getSupportFragmentManager();
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        serviceDataReceiver=new ServiceDataReceiver(null);
+        Intent intent = new Intent(this, BacKService.class);
+        intent.putExtra("receiver", serviceDataReceiver);
+        startService(intent);
+
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent taskselect=new Intent(LandActivity.this, TaskSelection.class);
-                startActivityForResult(taskselect,SelectTaskActivityCode);
+                Intent taskselect = new Intent(LandActivity.this, TaskSelection.class);
+                startActivityForResult(taskselect, SelectTaskActivityCode);
             }
         });
 
@@ -57,9 +79,8 @@ public class LandActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        View navigation_header_View =  navigationView.getHeaderView(0);
-        userProfileImage = (ImageView)navigation_header_View.findViewById(R.id.userProfile);
-
+        View navigation_header_View = navigationView.getHeaderView(0);
+        userProfileImage = (ImageView) navigation_header_View.findViewById(R.id.userProfile);
 
 
         try {
@@ -68,15 +89,18 @@ public class LandActivity extends AppCompatActivity
             if (userimg == null) {
                 userProfileImage.setImageResource(R.drawable.defuser);
             } else {
-                userimg=Bitmap.createScaledBitmap(userimg, 200, 200, true);
+                userimg = Bitmap.createScaledBitmap(userimg, 200, 200, true);
                 userProfileImage.setImageBitmap(userimg);
             }
 
             //userProfileImage.
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
+
+        MapFragment mapFragment = (MapFragment) getFragmentManager()
+                .findFragmentById(R.id.mainMapView);
+        mapFragment.getMapAsync(this);
 
     }
 
@@ -140,35 +164,116 @@ public class LandActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode==SelectTaskActivityCode){
-            if(resultCode== Activity.RESULT_OK){
+        if (requestCode == SelectTaskActivityCode) {
+            if (resultCode == Activity.RESULT_OK) {
                 //Toast.makeText(getApplicationContext(),"+ "+data.getStringExtra("type")+" "+data.getStringExtra("vehname")+" "+data.getStringExtra("Activity"),Toast.LENGTH_LONG).show();
-                handleTask(data.getStringExtra("Activity"),data.getStringExtra("type"),data.getStringExtra("vehname"));
-            }
-            else if(resultCode==Activity.RESULT_CANCELED){
+                handleTask(data.getStringExtra("Activity"), data.getStringExtra("type"), data.getStringExtra("vehname"),data.getStringExtra("vehkey"));
+            } else if (resultCode == Activity.RESULT_CANCELED) {
 
             }
         }
     }
 
-    public void handleTask(String activity,String type,String vehname){
+    public void handleTask(String activity, String type, String vehname,String vehkey) {
         Fragment fr;
-
-        if(activity.equals("PublishMe")){
-            fr=new PublishFragment();
+        Intent intent = new Intent();
+        keyvehicle=vehkey;
+        if (activity.equals("PublishMe")) {
+            //fr = new PublishFragment();
+            intent.putExtra(MessageKey.intenetKeyTrackStatus,"publish");
+            if(vehname.equals("train")){
+                applicationTaskStatus=MessageKey.PublishTrain;
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"train");
+            }else if(vehname.equals("bus")){
+                applicationTaskStatus=MessageKey.PublishBus;
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"bus");
+            }
+        } else if (activity.equals("TrackMe")) {
+            //fr = new TrackFragment();
+            intent.putExtra(MessageKey.intenetKeyTrackStatus,"track");
+            if(vehname.equals("train")){
+                applicationTaskStatus=MessageKey.TrackTrain;
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"train");
+            }else if(vehname.equals("bus")){
+                applicationTaskStatus=MessageKey.TrackBus;
+                intent.putExtra(MessageKey.intenetKeyTrackVehicle,"bus");
+            }
+        } else {
+            fr = new PublishFragment();
         }
-        else if(activity.equals("TrackMe")){
-                fr=new TrackFragment();
+        intent.putExtra(MessageKey.vehiclekeyindex,keyvehicle);
+        intent.setAction(MessageKey.activityserviceintentName);
+        sendBroadcast(intent);
+
+//        fr=new PublishFragment();
+//        FragmentManager fm = getFragmentManager();
+//        FragmentTransaction fragmentTransaction = fm.beginTransaction();
+//        fragmentTransaction.replace(R.id.fragment_place, fr);
+//        fragmentTransaction.commit();
+
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mGoogleMap = googleMap;
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
-        else{
-            fr=new PublishFragment();
+        mGoogleMap.setMyLocationEnabled(true);
+    }
+
+
+    class ServiceDataReceiver extends ResultReceiver{
+
+        /**
+         * Create a new ResultReceive to receive results.  Your
+         * {@link #onReceiveResult} method will be called from the thread running
+         * <var>handler</var> if given, or from an arbitrary thread if null.
+         *
+         * @param handler
+         */
+        public ServiceDataReceiver(Handler handler) {
+            super(handler);
         }
 
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            super.onReceiveResult(resultCode, resultData);
 
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fm.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_place, fr);
-        fragmentTransaction.commit();
+            runOnUiThread(new UpDateMapFromData(resultData,resultCode));
+        }
+    }
 
+    class UpDateMapFromData implements Runnable{
+
+        Bundle datatoupdate;
+        int rescode;
+        public UpDateMapFromData(Bundle data,int ResultCode){
+         datatoupdate=data;
+            rescode=ResultCode;
+        }
+        @Override
+        public void run() {
+            if(rescode== MessageKey.MyLocationUpdate) {
+                Toast.makeText(getApplicationContext(), "+++" + "Got data " + ((Location) datatoupdate.getParcelable("location")).getLongitude(), Toast.LENGTH_LONG).show();
+            }
+            else if(rescode==MessageKey.FireBaseTrackUpdate){
+
+                if(applicationTaskStatus==MessageKey.TrackTrain){
+                    //Location trainloc=(Location) datatoupdate.getParcelable("locationlist");
+                }
+                else if(applicationTaskStatus==MessageKey.TrackBus){
+
+                }
+            }
+        }
     }
 }

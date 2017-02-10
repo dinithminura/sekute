@@ -10,10 +10,17 @@
     tools:context="com.scorelab.kute.kute.LandActivity"
     tools:showIn="@layout/app_bar_land">
 
-    <fragment
+    <!--<fragment
         android:name="com.scorelab.kute.kute.Activity.FragmentUI.PublishFragment"
         android:id="@+id/fragment_place"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
+-->
+
+    <fragment
+        class="com.google.android.gms.maps.MapFragment"
+        android:layout_width="match_parent"
+        android:id="@+id/mainMapView"
+        android:layout_height="match_parent"/>
 
 </RelativeLayout>

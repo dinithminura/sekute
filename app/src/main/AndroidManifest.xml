@@ -4,6 +4,7 @@
 
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
 
     <application
         android:name=".KuteApplication"
@@ -15,6 +16,9 @@
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/googlemapApi"/>
 
         <activity android:name=".SplashActivity"></activity>
         <activity android:name=".Activity.RegisterActivity" />
@@ -38,6 +42,8 @@
         </activity>
         <activity android:name=".Activity.TaskSelection"></activity>
         <activity android:name=".Activity.VehicleSelection" ></activity>
+        <service android:name=".Services.BacKService"
+            android:process=":backservice"></service>
     </application>
 
 </manifest>
